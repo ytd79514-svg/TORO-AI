@@ -111,6 +111,18 @@
   </main>
 
   <footer>
+    <div style="margin-bottom: 12px;">
+      <input
+        id="toro-password"
+        type="password"
+        placeholder="Enter TORO AI test password"
+        aria-label="TORO AI test password"
+        autocomplete="current-password"
+        required
+        style="width: 100%; box-sizing: border-box; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #171717; color: white;"
+      />
+    </div>
+
     <form id="form" class="composer">
       <textarea id="input" rows="1" maxlength="8000"
         placeholder="Message TORO AI..." aria-label="Your message"></textarea>
@@ -126,7 +138,8 @@
   const form = document.getElementById("form");
   const input = document.getElementById("input");
   const send = document.getElementById("send");
-
+const passwordInput = document.getElementById("toro-password");
+let toroPassword = "";
   function addMessage(text, role) {
     const box = document.createElement("div");
     box.className = "message " + role;
@@ -140,10 +153,17 @@
     chat.scrollTop = chat.scrollHeight;
     return content;
   }
-
-  async function sendMessage(text) {
+async function sendMessage(text) {
     text = text.trim();
-    if (!text || send.disabled) return;
+    const toroPassword = passwordInput.value;
+
+    if (!toroPassword) {
+      alert("Please enter your TORO AI test password first.");
+      passwordInput.focus();
+      return;
+    }
+ 
+     if (!text || send.disabled) return;
     if (welcome) welcome.remove();
     addMessage(text, "user");
     input.value = "";
