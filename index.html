@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0d12">
+  <title>TORO AI — CONTINENTAL</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0b0d12;
+      color: #f4f5f7;
+      font-family: Inter, system-ui, Arial, sans-serif;
+      min-height: 100vh;
+    }
+    .app { display: flex; flex-direction: column; height: 100dvh; }
+    header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 17px 22px; border-bottom: 1px solid #252833;
+      background: #101219;
+    }
+    .logo {
+      width: 42px; height: 42px; border-radius: 13px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, #a78bfa, #6366f1);
+      font-size: 21px; font-weight: 900; color: white;
+    }
+    .brand { font-weight: 800; font-size: 18px; letter-spacing: 1px; }
+    .sub { color: #9ca3af; font-size: 12px; margin-top: 3px; }
+    .status { margin-left: auto; font-size: 12px; color: #86efac; }
+    main {
+      flex: 1; width: 100%; max-width: 850px; margin: 0 auto;
+      padding: 26px 18px; overflow-y: auto; display: flex;
+      flex-direction: column; gap: 22px;
+    }
+    .welcome { text-align: center; margin: auto 0; }
+    .welcome h1 { font-size: clamp(28px, 6vw, 43px); margin-bottom: 10px; }
+    .gradient {
+      background: linear-gradient(90deg, #c4b5fd, #818cf8);
+      color: transparent; background-clip: text;
+    }
+    .welcome p { color: #a1a1aa; line-height: 1.7; }
+    .suggestions {
+      display: flex; flex-wrap: wrap; gap: 9px;
+      justify-content: center; margin-top: 25px;
+    }
+    .suggestions button {
+      background: #151823; color: #e5e7eb;
+      border: 1px solid #303444; border-radius: 14px;
+      padding: 11px 13px; cursor: pointer;
+    }
+    .suggestions button:hover { border-color: #818cf8; }
+    .message {
+      max-width: 88%; padding: 14px 16px; border-radius: 17px;
+      line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere;
+    }
+    .user { align-self: flex-end; background: #292d42; }
+    .assistant { align-self: flex-start; background: #151821; border: 1px solid #292d38; }
+    .label { color: #a5b4fc; font-size: 11px; font-weight: 800; margin-bottom: 5px; }
+    footer { padding: 12px 16px 18px; border-top: 1px solid #252833; }
+    .composer {
+      max-width: 800px; margin: auto; display: flex; gap: 10px;
+      padding: 9px; background: #151821; border: 1px solid #343746;
+      border-radius: 17px;
+    }
+    textarea {
+      flex: 1; resize: none; max-height: 140px; min-width: 0;
+      background: transparent; border: 0; outline: 0;
+      color: white; font: inherit; padding: 10px; font-size: 15px;
+    }
+    .send {
+      align-self: flex-end; border: 0; border-radius: 12px;
+      padding: 12px 16px; background: #6366f1; color: white;
+      font-weight: 700; cursor: pointer;
+    }
+    .send:disabled { opacity: .5; cursor: wait; }
+    .note { text-align: center; color: #777d8e; font-size: 11px; margin: 10px 0 0; }
+    @media (max-width: 520px) {
+      header { padding: 13px 14px; }
+      main { padding: 20px 12px; }
+      .message { max-width: 94%; }
+      .status { font-size: 10px; }
+      footer { padding: 10px 10px 14px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">T</div>
+    <div>
+      <div class="brand">TORO AI <span style="color:#a5b4fc">1.1</span></div>
+      <div class="sub">POWERED BY CONTINENTAL</div>
+    </div>
+    <div class="status">● Local prototype</div>
+  </header>
+
+  <main id="chat">
+    <section class="welcome" id="welcome">
+      <h1>Meet <span class="gradient">TORO AI</span></h1>
+      <p>Your AI assistant. Ask a question, explore an idea,<br>
+         or get help with your next project.</p>
+      <div class="suggestions">
+        <button data-prompt="Explain artificial intelligence in simple words.">Explain AI</button>
+        <button data-prompt="Give me three creative project ideas.">Creative ideas</button>
+        <button data-prompt="Write a Python program that adds two numbers.">Write code</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <form id="form" class="composer">
+      <textarea id="input" rows="1" maxlength="8000"
+        placeholder="Message TORO AI..." aria-label="Your message"></textarea>
+      <button class="send" id="send" type="submit">Send ↑</button>
+    </form>
+    <p class="note">TORO AI can make mistakes. Check important information.</p>
+  </footer>
+</div>
+
+<script>
+  const chat = document.getElementById("chat");
+  const welcome = document.getElementById("welcome");
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
+  const send = document.getElementById("send");
+
+  function addMessage(text, role) {
+    const box = document.createElement("div");
+    box.className = "message " + role;
+    const label = document.createElement("div");
+    label.className = "label";
+    label.textContent = role === "user" ? "YOU" : "TORO AI";
+    const content = document.createElement("div");
+    content.textContent = text;
+    box.append(label, content);
+    chat.appendChild(box);
+    chat.scrollTop = chat.scrollHeight;
+    return content;
+  }
+
+  async function sendMessage(text) {
+    text = text.trim();
+    if (!text || send.disabled) return;
+    if (welcome) welcome.remove();
+    addMessage(text, "user");
+    input.value = "";
+    input.style.height = "auto";
+    send.disabled = true;
+    send.textContent = "...";
+    const answer = addMessage("Thinking...", "assistant");
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Request failed");
+      answer.textContent = data.reply || "I received an empty response.";
+    } catch (error) {
+      answer.textContent = "Couldn't reach TORO AI. Make sure the web server and Ollama are running, then try again.";
+    } finally {
+      send.disabled = false;
+      send.textContent = "Send ↑";
+      input.focus();
+      chat.scrollTop = chat.scrollHeight;
+    }
+  }
+
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    sendMessage(input.value);
+  });
+
+  input.addEventListener("input", () => {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 140) + "px";
+  });
+
+  input.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  document.querySelectorAll("[data-prompt]").forEach(button => {
+    button.addEventListener("click", () => sendMessage(button.dataset.prompt));
+  });
+</script>
+</body>
+</html>
